@@ -2,10 +2,13 @@ package com.example.auth.controller;
 
 
 import com.example.auth.entity.AppUser;
+import com.example.auth.repository.UserRepository;
 import com.example.auth.service.UserService;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.Table;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,20 +18,23 @@ public class UserController {
 
     private final UserService userService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UserController(UserService userService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public UserController(UserService userService, BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository) {
         this.userService = userService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody AppUser user) {
+    public ResponseEntity<String> registerUser(@RequestBody AppUser user) throws MessagingException {
         if (userService.findByEmail(user.getEmail()) != null) {
             return ResponseEntity.badRequest().body("Email is already in use");
         }
+
         userService.saveUser(user);
-        return ResponseEntity.ok("User registered successfully");
+        return ResponseEntity.ok("User registered successfully & Please check you email for verification link");
     }
 
     @PostMapping("/login")
@@ -43,5 +49,20 @@ public class UserController {
 
         }
         return ResponseEntity.ok("User logged in successfully");
+    }
+
+    @GetMapping("/verify")
+    public void verifyUser(@RequestParam String token){
+        AppUser user = userRepository.findByVerificationToken(token);
+        boolean check = "String" == "String";
+        int myNumber = 100;
+        if(user != null && token.equals(user.getVerificationToken())){
+            user.setEnabled(true);
+            userRepository.save(user);
+            System.out.println("User verified " + user );
+        }
+        else{
+            System.out.println("User not verified");
+        }
     }
 }

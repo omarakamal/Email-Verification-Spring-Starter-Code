@@ -12,8 +12,16 @@ public class AppUser {
     private String password;
     private boolean enabled = false;
 
+    private String verificationToken;
 
-    // Getters and Setters
+    public String getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
+// Getters and Setters
 
     public Long getId() {
         return id;
